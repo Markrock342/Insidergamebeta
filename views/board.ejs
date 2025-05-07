@@ -110,7 +110,7 @@
          
 <%- contentFor('script') %>
 <script>
-    var socket = io.connect('localhost:8080');
+    var socket = io.connect(window.location.origin);
 
     function displayPlayerStatus(online, offline) {
         $('.playerStatus').html('');
@@ -335,5 +335,14 @@
             soundNotify('ding');
         });
 
+    });
+
+    socket.on('countdownUpdate', function(counter) {
+        document.getElementById('timer').innerText = counter;
+    });
+
+    // ตัวอย่างการใช้งาน socket.emit()
+    document.getElementById('startGame').addEventListener('click', function() {
+        socket.emit('startGame');
     });
 </script>
