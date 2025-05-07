@@ -17,6 +17,10 @@
         <div class="container-fluid">
             <header>
                 <img src="/static/image/title.jpg" />
+                <!-- ปุ่มลำโพง -->
+                <div id="volumeControl" style="position: absolute; top: 10px; right: 10px; cursor: pointer;">
+                    <img id="volumeIcon" src="/static/image/song.png" alt="Volume" width="40" height="40">
+                </div>
             </header>
             <div class="row">
                 <div class="col-lg-12">
@@ -45,21 +49,46 @@
         <script>
             // Background Music Controller
             const backgroundMusic = document.getElementById('backgroundMusic');
+            const volumeIcon = document.getElementById('volumeIcon');
 
-            // ป้องกันการเล่นซ้ำเมื่อเปลี่ยนหน้า
-            if (!sessionStorage.getItem('musicPlaying')) {
-                backgroundMusic.play();
-                sessionStorage.setItem('musicPlaying', true);
+            // ตรวจสอบสถานะการปิดเสียงจาก sessionStorage
+            if (!sessionStorage.getItem('musicMuted')) {
+                sessionStorage.setItem('musicMuted', false);
+            } else if (sessionStorage.getItem('musicMuted') === 'true') {
+                backgroundMusic.muted = true;
+                volumeIcon.src = '/static/image/mute.png';
             }
 
-            // ตรวจสอบเมื่อเพลงจบ ให้เล่นซ้ำ
-            backgroundMusic.addEventListener('ended', function() {
-                backgroundMusic.play();
+            // ตรวจสอบตำแหน่งเพลงจาก localStorage
+            const savedTime = localStorage.getItem('musicCurrentTime');
+            if (savedTime) {
+                backgroundMusic.currentTime = parseFloat(savedTime);
+            }
+
+            // เล่นเพลงเมื่อหน้าโหลด
+            backgroundMusic.play();
+
+            // บันทึกตำแหน่งเพลงทุก 500ms
+            setInterval(() => {
+                localStorage.setItem('musicCurrentTime', backgroundMusic.currentTime);
+            }, 500);
+
+            // Event Listener สำหรับปุ่มลำโพง
+            volumeIcon.addEventListener('click', function () {
+                if (backgroundMusic.muted) {
+                    backgroundMusic.muted = false;
+                    volumeIcon.src = '/static/image/song.png';
+                    sessionStorage.setItem('musicMuted', false);
+                } else {
+                    backgroundMusic.muted = true;
+                    volumeIcon.src = '/static/image/mute.png';
+                    sessionStorage.setItem('musicMuted', true);
+                }
             });
 
-            // ป้องกันการเล่นซ้ำเมื่อเปลี่ยนหน้า
-            window.addEventListener('beforeunload', function() {
-                sessionStorage.setItem('musicPlaying', true);
+            // ตรวจสอบเมื่อเพลงจบ ให้เล่นซ้ำ
+            backgroundMusic.addEventListener('ended', function () {
+                backgroundMusic.play();
             });
         </script>
     </body>
