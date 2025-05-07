@@ -98,7 +98,7 @@ function resetGame() {
         player.vote2 = null;
         player.nbVote2 = 0;
     });
-    game.word = getWord(wordFamille); // ตรวจสอบว่าคำศัพท์ถูกตั้งค่าที่นี่
+    game.word = getWord(wordFamille);
     game.countdown = null;
     game.resultVote1 = null;
     game.resultVote2 = null;
@@ -221,7 +221,7 @@ function processVote2Result() {
     ghostPlayer = ghostPlayers.length > 0 ? ghostPlayers[0]: null;
     game.resultVote2 = { hasWon: hasWon, voteDetail: votePlayers, hasTraitor: (!ghostPlayer || ghostPlayer.role !== traitorRole) };
 }
-// On enclenche le socket d'échange
+
 io.sockets.on('connection', function (socket) {
     socket.join('game');
  

@@ -5,8 +5,7 @@
         <link rel="stylesheet" href="static/css/style.css">
         <link rel="stylesheet" href="static/css/form.css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-        <link rel="stylesheet" href=
-"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.css">
         <link rel="icon" type="image/png" sizes="32x32" href="/static/image/favicon-32x32.png">
         <link rel="icon" type="image/png" sizes="96x96" href="/static/image/favicon-96x96.png">
         <link rel="icon" type="image/png" sizes="16x16" href="/static/image/favicon-16x16.png">
@@ -30,11 +29,38 @@
             <%-defineContent('footer')%>
         </footer>
 
+        <!-- Audio Player -->
+        <audio id="backgroundMusic" loop autoplay>
+            <source src="/static/sound/theme-song.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+
         <!-- Javascript -->
         <script src="//code.jquery.com/jquery-1.10.2.js"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script src="static/js/timer.js"></script>
     
         <%-defineContent('script')%>
+
+        <script>
+            // Background Music Controller
+            const backgroundMusic = document.getElementById('backgroundMusic');
+
+            // ป้องกันการเล่นซ้ำเมื่อเปลี่ยนหน้า
+            if (!sessionStorage.getItem('musicPlaying')) {
+                backgroundMusic.play();
+                sessionStorage.setItem('musicPlaying', true);
+            }
+
+            // ตรวจสอบเมื่อเพลงจบ ให้เล่นซ้ำ
+            backgroundMusic.addEventListener('ended', function() {
+                backgroundMusic.play();
+            });
+
+            // ป้องกันการเล่นซ้ำเมื่อเปลี่ยนหน้า
+            window.addEventListener('beforeunload', function() {
+                sessionStorage.setItem('musicPlaying', true);
+            });
+        </script>
     </body>
 </html>
