@@ -1,0 +1,51 @@
+<%- contentFor('content') %>
+<h2>รายชื่อผู้เล่น</h2>
+<!-- รายชื่อผู้เล่น -->
+
+<ul id="playerList">
+    <% players.forEach(function(player, index) { %>
+        <li><%= player.name %> <a href="/deletePlayer?player=<%= player.name %>" class="remove"><i class="far fa-trash-alt"></i></a></li>
+    <% }); %>
+</ul>
+
+<form id="playerAddForm" method="post" name="playerForm" action="addPlayer">
+    <div class="form-group">
+        <label for="playerName"> เพิ่มผู้เล่น </label>
+        <!-- เพิ่มผู้เล่น -->
+        <p>
+            <input type="checkbox" name="admin" /> Admin
+        </p> 
+        <input type="text" name="player" class="form-control" id="playerName" style="width: 60%; display: inline;" placeholder="John Doe">
+        <button type="submit" class="btn btn-warning"> เพิ่ม </button>
+        <!-- เพิ่ม -->
+    </div>
+    <div class="info">
+        <p>
+            ผู้ดูแลระบบจะเป็นหัวหน้าเกมเพื่อเริ่มการกระทำดังต่อไปนี้ :
+            <!-- ผู้ดูแลระบบจะเป็นหัวหน้าเกมเพื่อเริ่มการกระทำดังต่อไปนี้: -->
+            <ul>
+                <li> สุ่มบทบาท </li>
+                <!-- สุ่มบทบาท -->
+                <li> เริ่มจับเวลา </li>
+                <!-- เริ่มจับเวลา -->
+                <li> หยุดจับเวลา </li>
+                <!-- หยุดจับเวลา -->
+                <li> เริ่มการโหวต </li>
+                <!-- เริ่มการโหวต -->
+            </ul>
+        </p>
+    </div>
+</form>
+
+<%- contentFor('footer') %>
+<div class="container">
+    <a href='/' class="btn btn-dark cta" id="newGame">ย้อนกลับ</a>
+</div>
+
+<%- contentFor('script') %>
+<script>
+    $(function() {
+        
+    });
+</script>
+</html>

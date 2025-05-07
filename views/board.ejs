@@ -1,0 +1,339 @@
+<%- contentFor('content') %>
+<div class="player">
+    <% if (player.permission == 'admin') { %>
+        <div class="playerStatus"></div>
+    <% } %>
+    เริ่มกันเลย <strong><%= player.name %></strong> !
+    <!-- เริ่มกันเลย <strong><%= player.name %></strong>! -->
+
+    <span class="homelink">หากไม่ใช่คุณ , <a href="/">คลิกที่นี่</a> !</span>
+    <!-- หากไม่ใช่คุณ <a href="/">คลิกที่นี่</a>! -->
+</div>
+
+<div id="waiting" class="hidden <% if (status === '') { %>current<% } %>">
+    <p> รอให้ทุกคนพร้อม...</p>
+    <!-- รอให้ทุกคนพร้อม... -->
+</div>
+
+<div id="reset">
+    <p class="role hidden <% if (status == 'role') { %>appear<% } %>">คุณคือ <strong><%= player.role %></strong></p>
+    <!-- คุณคือ <strong><%= player.role %></strong> -->
+</div>
+
+<div id="chooseWord" class="hidden <% if (status == 'role' && player.role === 'ผู้นำ') { %>current<% } %>">
+    <form id="wordForm" method="post" name="wordForm" action="setWord" autocomplete="off">
+        <div class="form-group">
+            <input type="text" name="word" class="form-control" id="wordForm" style="width: 60%; display: inline;" placeholder="คำที่ต้องเดา" />
+            <button type="submit" class="btn btn-warning">ส่งคำ</button>
+            <small class="form-text">ถ้าคิดไม่ออกไม่ต้องพิมพ์ ค่าว่างไว้ ระบบจะสุ่มคำ</small>
+        </div>
+    </form>
+</div>
+
+<div id="reveal">
+    <button class="btn btn-warning cta hidden <% if (status == 'word' && player.role === 'Maître du jeu') { %>current<% } %>">เปิดเผยคำ</button>
+    <div id="word" class="hidden"></div>
+</div>
+
+<div id="startGame" class="hidden  <% if (status == 'word') { %>current<% } %>">
+    <% if (player.permission == 'admin') { %>
+        <a href=""><i class="fas fa-play-circle"></i></a>
+    <% } %>
+</div>
+
+<div id="countdown" class="hidden">
+    <span id="timer"></span>
+    <% if (player.permission == 'admin') { %>
+        <a href=""><i class="fas fa-stop-circle"></i></a>
+    <% } %>
+</div>
+
+<div id="voteForm">
+    <% if (player.permission == 'admin') { %>
+        <button id="displayVote1" class="btn btn-warning cta hidden <% if (status == 'vote1') { %>current<% } %>">Voter</button>
+    <% } %>
+    <div id="vote1" class="hidden">
+        <h4> คนที่เดาคำได้เนี่ยเป็นจอมบงการมั้ย ถ้าใช่กดถูกใจ (ไม่เปิดเผย) </h4>
+        <!-- คนที่เดาคำได้คือผู้ทรยศหรือไม่? -->
+        <button data-vote="1" class="btn btn-warning"><i class="fas fa-thumbs-up"></i></button>
+        <button data-vote="0" class="btn btn-warning"><i class="fas fa-thumbs-down"></i></button>
+    </div>
+    <div id="vote1Result" class="hidden <% if (status == 'vote2') { %>current<% } %>">
+        <h4>ผลการโหวต</h4>
+        <!-- ผลการโหวต -->
+        <span class="resultUp">
+            <strong>
+                <% if(resultVote1 !== null) {%><%= resultVote1.up %><% } %>
+            </strong> <i class="fas fa-thumbs-up"></i>
+        </span>
+        <span class="resultDown">
+            <strong>
+                <% if(resultVote1 !== null) {%><%= resultVote1.down %><% } %>
+            </strong> <i class="fas fa-thumbs-down"></i>
+        </span>
+    </div>
+    <% if (player.permission == 'admin') { %>
+        <button id="displayVote2" class="btn btn-warning cta hidden <% if (status == 'vote2') { %>current<% } %>">Voter</button>
+    <% } %>
+    <div id="vote2" class="hidden">
+        <h4>ใครคือผู้ทรยศ?</h4>
+        <!-- ใครคือผู้ทรยศ? -->
+        <form class="inline-block" id="playerChoiceForm" method="post" name="playerForm" action="game">
+            <div class="choices"></div>
+            <button class="btn btn-warning">Voter</button>
+        </form>
+    </div>
+    <div id="vote2Result" class="hidden">
+        <h4>ผลการโหวต</h4>
+        <!-- ผลการโหวต -->
+        <ul id="playerList"></ul>
+        <p id="finalResult"></p>
+        <!-- ผลลัพธ์สุดท้าย -->
+    </div>
+</div>
+
+<div id="status" class="hidden <% if (status !== '') { %>current<% } %>">
+    <p>
+        <% if (status !== '') { %>
+            'รอ <strong>ผู้ควบคุมเกม</strong> หรือ <strong>ผู้นำ</strong> ...
+            <!-- รอ <strong>ผู้ควบคุมเกม</strong> หรือ <strong>หัวหน้าเกม</strong> ... -->
+        <% } %>
+    </p>
+</div>
+
+<%- contentFor('footer') %>
+<% if (player.permission == 'admin') { %>
+<div class="container">
+    <button class="btn btn-dark cta" id="newGame">เริ่มเกมใหม่</button>
+</div>
+<% } %>
+         
+<%- contentFor('script') %>
+<script>
+    var socket = io.connect('localhost:8080');
+
+    function displayPlayerStatus(online, offline) {
+        $('.playerStatus').html('');
+        for (var i = 0; i < online; i++) {
+            $('.playerStatus').append('<i class="fas fa-circle online"></i>')
+        }
+        for (var i = 0; i < offline; i++) {
+            $('.playerStatus').append('<i class="fas fa-circle offline"></i>')
+        }
+    }
+
+    function soundNotify(notifType) {
+        let audiof;
+        switch (notifType) {
+          case 'message':
+            audiof = new Audio('/static/sound/message.mp3');
+            break;
+          case 'mysterious':
+            audiof = new Audio('/static/sound/mysterious.mp3');
+            break;
+          case 'ding':
+            audiof = new Audio('/static/sound/ding.mp3');
+            break;
+          case 'dong':
+            audiof = new Audio('/static/sound/dong.mp3');
+            break;
+          case 'tada':
+            audiof = new Audio('/static/sound/tada.mp3');
+            break;
+          default:
+            audiof = new Audio('/static/sound/ding.mp3');
+        }
+        
+        audiof.play();
+    }
+
+    function addPlayerVote(player, checked) {
+        let templateVote = '<div class="form__group optionalClass"><div class="form__radio-group"><input checked type="radio" class="form__radio-input" id="playerName" name="player" value="playerName"><label for="playerName" class="form__radio-label">playerName</label></div></div>';
+
+        if(!checked) {
+            templateVote = templateVote.replace('checked ', '');
+        }
+        templateVote = templateVote.replace('optionalClass', player.isGhost ? 'ghost' : '');
+
+        $('#vote2 form .choices').append(templateVote.replace(/playerName/g, player.name));
+    }
+
+    function updateCountdown(counter) {
+        $("#timer").html(formatCountdown(counter));
+    }
+
+    function getResultIssue(result) {
+        if(result.hasWon) {
+            return 'ยินดีด้วย! <br/>คุณชนะแล้ว!';
+        } else if(result.hasTraitor) {
+            return 'จอมบงการชนะ!';
+        } else {
+            return 'แพ้แล้ว ไม่มีจอมบงการ!';
+        }
+    }
+
+    $(function() {
+
+        $('.appear').fadeIn().delay(3000).fadeOut();
+
+        $("#wordForm").submit(function(e) {
+            $.post($(this).attr('action'),
+            {
+              word: $("#wordForm input[name='word']").val()
+            },
+            function(data, status){
+              $("#chooseWord").fadeOut();
+              $('#reveal button').fadeIn(1000);
+            });
+            e.preventDefault();
+        });
+
+        $( "#newGame").click(function(){
+            socket.emit('resetGame');
+            $(this).attr("disabled", true);
+        });
+
+        $( "#startGame a").click(function(e){
+            socket.emit('startGame');
+            $("#startGame").fadeOut();
+            $("#countdown").fadeIn();
+            e.preventDefault();
+        });
+
+        $( "#countdown a").click(function(e){
+            socket.emit('wordFound');
+            e.preventDefault();
+        });
+
+        $( "#displayVote1").click(function(e){
+            socket.emit('displayVote1');
+        });
+
+        $( "#displayVote2").click(function(e){
+            socket.emit('displayVote2');
+        });
+
+        $( "#vote1 button").click(function(e){
+            $('.hidden').hide();
+            socket.emit('vote1', {player: '<%= player.name %>', vote: $(this).data('vote')});
+            $(this).attr("disabled", true);
+        });
+
+        $( "#vote2 button").click(function(e){
+            $('.hidden').hide();
+            socket.emit('vote2', {player: '<%= player.name %>', vote: $("#vote2 input[name='player']:checked").val()});
+            e.preventDefault();
+            $(this).attr("disabled", true);
+        });
+
+        $( "#reveal button").click(function(){
+            socket.emit('revealWord');
+            $(this).attr("disabled", true).hide();
+        });
+
+        socket.emit('newPlayer', '<%= player.name %>');
+
+        socket.on('reconnect', function(data) {
+            socket.emit('Reconnect', '<%= player.name %>');
+        })
+
+        socket.on('newRole', function(data) {
+            $('.hidden').hide();
+            $('#word').html('');
+            $('#vote2 form .choices').html('');
+            $('#reveal button, #newGame, #vote1 button, #vote2 button').attr("disabled", false);
+
+            $.each(data.players, function(i, obj) {
+                if(obj.name == '<%= player.name %>') {
+                    $('.role strong').html(obj.role);
+                    $('#reset .role').fadeIn(1000).delay(6000).fadeOut("slow", function(){
+                        if(obj.role == 'ผู้นำ') {
+                            $("#chooseWord").fadeIn();
+                        }
+                    });
+                    return false;
+                };
+            });
+            soundNotify('mysterious');
+        });
+
+        socket.on('revealWord', function(data) {
+            $.each(data.players, function(i, obj) {
+                if(obj.name == '<%= player.name %>') {
+                    if(obj.role == 'ผู้นำ' || obj.role == 'จอมบงการ') {
+                        $('#word').html("<span>คำที่ต้องเดาคือ <strong>"+data.word+"</strong></span>");
+                    } else {
+                        $('#word').html("<span>ผู้ควบคุมเกมและจอมบงการ <br />ได้รับคำที่ต้องเดาแล้ว</span>");
+                    }
+                    return false;
+                };
+            });
+
+            $('#word').fadeIn(1000).delay(5000).fadeOut("slow", function() {
+                $("#startGame").fadeIn();
+            });
+            soundNotify('message');
+        });
+
+        socket.on('wordFound', function() {
+            $('.hidden').hide();
+            $('#displayVote1').fadeIn();
+        });
+
+        socket.on('displayVote1', function() {
+            $('.hidden').hide();
+            $('#vote1').fadeIn();
+            $("#vote1 button").attr("disabled", false);
+            soundNotify('message');
+        });
+
+        socket.on('displayVote2', function(players) {
+            $('.hidden').hide();
+            $("#vote2 button").attr("disabled", false);
+            $('#vote2 form .choices').html('');
+            players.forEach(function(votePlayer, index) {
+                let checked = (index === 0 ? true : false);
+                addPlayerVote(votePlayer, checked);
+            });
+            $('#vote2').fadeIn();
+        });
+        
+        socket.on('vote1Ended', function(result) {
+            $('.hidden').hide();
+            $('#vote1Result').fadeIn();
+            $('#vote1Result .resultUp strong').html(result.up);
+            $('#vote1Result .resultDown strong').html(result.down);
+            $('#displayVote2').fadeIn();
+            soundNotify('tada');
+        });
+
+        socket.on('vote2Ended', function(result) {
+            $('.hidden').hide();
+            $('#vote2Result ul').html('');
+            result.voteDetail.forEach(function(votePlayer, index) {
+                $('#vote2Result ul').append('<li>'+votePlayer.name+' ('+votePlayer.nbVote2+')</li>');
+            });
+            finalResult = getResultIssue(result);
+            $('#vote2Result #finalResult').html(finalResult);
+            $('#vote2Result').fadeIn();
+            soundNotify('tada');
+        });
+
+        socket.on('playerStatusUpdate', function(playerStatus) {
+            displayPlayerStatus(playerStatus.online, playerStatus.offline)
+        });
+
+        socket.on('countdownUpdate', function(counter) {
+            $('.hidden').hide();
+            updateCountdown(counter);
+            $("#countdown").show();
+        });
+
+        socket.on('startGame', function() {
+            $('.hidden').hide();
+            $("#countdown").fadeIn();
+            soundNotify('ding');
+        });
+
+    });
+</script>

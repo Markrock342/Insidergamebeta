@@ -1,0 +1,32 @@
+<%- contentFor('content') %>
+<h2>คุณคือใครเลือกมา? <h2>
+<span class="homelink">แก้ไขผู้เล่น เพิ่ม-ลบผู้เล่น, <a href="/adminPlayer">คลิกที่กูนี่ส้นตีน</a> !</span>
+
+<form class="inline-block" id="playerChoiceForm" method="post" name="playerForm" action="game">
+    <% players.forEach(function(player, index) { %>
+        <% if(!player.isGhost) { %>
+          <div class="form__group">
+              <div class="form__radio-group">
+                <input <% if(index == 0) { %>checked<% } %> type="radio" class="form__radio-input" id="<%= player.name %>" name="player" value="<%= player.name %>" />
+                <label for="<%= player.name %>" class="form__radio-label">
+                  <%= player.name %>
+                </label>
+              </div>
+          </div>
+        <% } %>
+    <% }); %>
+</form>
+
+<%- contentFor('footer') %> 
+<div class="container">
+    <button class="btn btn-dark cta" id="newGame">เริ่มกันเลย</button>
+</div>
+
+<%- contentFor('script') %>
+<script>
+$(function() {
+    $( "#newGame").click(function(){
+        $('.content form').submit();
+    });
+});
+</script>
