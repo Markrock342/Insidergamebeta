@@ -5,6 +5,7 @@ var server = require('http').createServer(app), // เซิร์ฟเวอ�
     io = require('socket.io').listen(server), // Socket.io สำหรับการทำงานแบบเรียลไทม์
     ent = require('ent'), // Ent สำหรับการเข้ารหัส
     session = require('express-session'),
+    FileStore = require('session-file-store')(session), // เพิ่ม FileStore สำหรับการจัดเก็บ session
     bodyParser = require('body-parser'),
     expressLayouts = require('express-ejs-layouts');
 
@@ -34,7 +35,13 @@ app.use(function(req, res, next){
 })
 
 .use(expressLayouts)
-.use(session({ secret: 'session-insider-secret', cookie: { maxAge: null }}))
+.use(session({
+    store: new FileStore(), // ใช้ FileStore สำหรับจัดเก็บ session
+    secret: 'session-insider-secret',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 3600000 } // อายุของ session (1 ชั่วโมง)
+}))
 .use('/static', express.static(__dirname + '/public'))
 .use(bodyParser.urlencoded({
    extended: true

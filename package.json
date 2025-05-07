@@ -8,6 +8,7 @@
     "express": "4.x",
     "express-ejs-layouts": "^2.5.0",
     "express-session": "^1.17.1",
+    "session-file-store": "^1.5.0",
     "socket.io": "1.x"
   },
   "author": "emmanuel.detaillac@gmail.com",
